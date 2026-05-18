@@ -3,7 +3,9 @@ package com.example.deolhonolixo.ui.screens
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.*
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -14,18 +16,26 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.deolhonolixo.data.api.Truck
+import com.example.deolhonolixo.data.api.UrbanGeometryResponse
+import com.example.deolhonolixo.data.api.RouteResponse
+import com.example.deolhonolixo.data.api.TruckHistory
 import com.example.deolhonolixo.ui.theme.Primary
 
 @Composable
-fun DashboardScreen() {
+fun DashboardScreen(viewModel: DashboardViewModel = viewModel()) {
     var currentTab by remember { mutableIntStateOf(0) }
-    
+    val trucks by viewModel.trucks.collectAsState()
+    val routes by viewModel.routes.collectAsState()
+    val urbanGeometry by viewModel.urbanGeometry.collectAsState()
+    val history by viewModel.truckHistory.collectAsState()
+
     Scaffold(
         bottomBar = {
             BottomNavigationBar(currentTab) { currentTab = it }
@@ -33,10 +43,10 @@ fun DashboardScreen() {
     ) { paddingValues ->
         Box(modifier = Modifier.padding(paddingValues)) {
             when (currentTab) {
-                0 -> MonitoramentoTab()
-                1 -> AlertasTab()
-                2 -> RelatoriosTab()
-                3 -> AjustesTab()
+                0 -> MonitoramentoTab(trucks, urbanGeometry, routes)
+                1 -> AlertasTab(history)
+                2 -> RelatoriosTab(trucks, routes)
+                3 -> AjustesTab(viewModel)
             }
         }
     }
@@ -44,23 +54,24 @@ fun DashboardScreen() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MonitoramentoTab() {
-    val bairros = listOf(
-        "Militar", "Canto do Forte", "Boqueirão", "Guilhermina", "Aviação", "Tupi", 
-        "Ocian", "Mirim", "Maracanã", "Caiçara", "Real", "Flórida", "Solemar", 
-        "Cidade da Criança", "Princesa", "Imperador", "Melvi", "Samambaia", 
-        "Esmeralda", "Ribeirópolis", "Andaraguá", "Nova Mirim", "Anhanguera", 
-        "Quietude", "Santa Marina", "Tupiry", "Antártica", "Vila Sônia", 
-        "Glória", "Sítio do Campo", "Xixová", "Serra do Mar"
-    )
-    
+fun MonitoramentoTab(
+    trucks: List<Truck>, 
+    urbanGeometry: List<UrbanGeometryResponse>,
+    routes: List<RouteResponse>
+) {
     var expanded by remember { mutableStateOf(false) }
-    var selectedBairro by remember { mutableStateOf(bairros[2]) }
+    var selectedBairro by remember { mutableStateOf("Todos os Setores") }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Box(modifier = Modifier.fillMaxSize().background(Color(0xFFF3F4F6))) {
-            Icon(Icons.Default.LocalShipping, null, Modifier.offset(120.dp, 150.dp).size(28.dp), tint = Primary)
-            Icon(Icons.Default.LocalShipping, null, Modifier.offset(200.dp, 300.dp).size(28.dp), tint = Color(0xFF84CC16))
+            trucks.forEachIndexed { index, truck ->
+                Icon(
+                    Icons.Default.LocalShipping, 
+                    null, 
+                    Modifier.offset(x = (40 + index * 30).dp, y = (100 + index * 50).dp).size(28.dp), 
+                    tint = if (truck.status == "Ativo") Color(0xFF84CC16) else Primary
+                )
+            }
         }
 
         ExposedDropdownMenuBox(
@@ -72,7 +83,7 @@ fun MonitoramentoTab() {
                 value = selectedBairro,
                 onValueChange = {},
                 readOnly = true,
-                label = { Text("Setor (Bairro)") },
+                label = { Text("Filtro Geográfico") },
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                 modifier = Modifier.menuAnchor().background(Color.White, RoundedCornerShape(12.dp)),
                 shape = RoundedCornerShape(12.dp)
@@ -81,11 +92,15 @@ fun MonitoramentoTab() {
                 expanded = expanded,
                 onDismissRequest = { expanded = false }
             ) {
-                bairros.forEach { bairro ->
+                DropdownMenuItem(
+                    text = { Text("Todos os Setores") },
+                    onClick = { selectedBairro = "Todos os Setores"; expanded = false }
+                )
+                urbanGeometry.forEach { item ->
                     DropdownMenuItem(
-                        text = { Text(bairro) },
+                        text = { Text(item.name) },
                         onClick = {
-                            selectedBairro = bairro
+                            selectedBairro = item.name
                             expanded = false
                         }
                     )
@@ -94,7 +109,7 @@ fun MonitoramentoTab() {
         }
 
         Surface(
-            modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().fillMaxHeight(0.65f),
+            modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().fillMaxHeight(0.5f),
             color = Color.White,
             shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
             shadowElevation = 16.dp
@@ -106,77 +121,97 @@ fun MonitoramentoTab() {
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 item(span = { GridItemSpan(2) }) {
-                    Text("Monitoramento em Tempo Real", fontWeight = FontWeight.Bold, color = Color.Gray, fontSize = 12.sp)
+                    Text("Painel Admin - Frota PG", fontWeight = FontWeight.Bold, color = Color.Gray, fontSize = 12.sp)
                 }
-                item { MetricCard("Coletas", "13", Color(0xFF7B8AD7), Color.White, hasProgress = true) }
-                item { MetricCard("Caminhões", "08", Color.White, Color(0xFFEAB308), "Ativos Hoje", Color(0xFFE5E7EB)) }
+                item { MetricCard("Frota Total", "${trucks.size}", Color(0xFF7B8AD7), Color.White) }
+                item { MetricCard("Rotas Ativas", "${routes.size}", Color.White, Color(0xFFEAB308), border = Color(0xFFE5E7EB)) }
                 
                 item(span = { GridItemSpan(2) }) {
-                    HorizontalMetricCard("Capacidade Caçamba", "78%", "Sensor ESP32-Lixo", Color(0xFF84CC16))
+                    HorizontalMetricCard("Status Operacional", "Normal", "Sincronizado com API Java", Color(0xFF84CC16))
                 }
-                
-                item { MetricCard("Combustível", "62%", Color.White, Color(0xFFEF4444), "Média Frota", Color(0xFFE5E7EB), isCircular = true) }
-                item { MetricCard("Distância", "312km", Color(0xFFF472B6), Color.White) }
             }
         }
     }
 }
 
 @Composable
-fun RelatoriosTab() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp)
-            .verticalScroll(rememberScrollState())
-    ) {
-        Text("Relatórios e Métricas", fontWeight = FontWeight.Bold, fontSize = 24.sp)
-        Spacer(modifier = Modifier.height(24.dp))
-
-        ReportCard(
-            title = "Eficiência da Coleta",
-            value = "94%",
-            description = "Aumento de 5% em relação à semana passada",
-            color = Primary
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        ReportCard(
-            title = "Volume de Resíduos",
-            value = "142.5 Ton",
-            description = "Total coletado em Praia Grande hoje",
-            color = Color(0xFF84CC16)
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        ReportCard(
-            title = "Economia de Combustível",
-            value = "R$ 1.240,00",
-            description = "Otimização de rotas via IA",
-            color = Color(0xFFEAB308)
-        )
+fun AlertasTab(history: List<TruckHistory>) { 
+    Column(Modifier.fillMaxSize().padding(24.dp)) {
+        Text("Histórico e Alertas", fontWeight = FontWeight.Bold, fontSize = 24.sp)
+        Spacer(Modifier.height(16.dp))
         
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Text("Top Bairros (Volume)", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-        Spacer(modifier = Modifier.height(8.dp))
-        
-        val topBairros = listOf("Boqueirão" to "12.4t", "Canto do Forte" to "10.8t", "Guilhermina" to "9.5t")
-        topBairros.forEach { (bairro, volume) ->
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(bairro, color = Color.Gray)
-                Text(volume, fontWeight = FontWeight.Bold, color = Primary)
+        if (history.isEmpty()) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("Nenhum histórico recente detectado.", color = Color.Gray)
             }
-            HorizontalDivider(color = Color(0xFFF3F4F6), thickness = 1.dp)
+        } else {
+            LazyColumn {
+                items(history) { entry ->
+                    AlertItem("Caminhão ${entry.truckId} em Lat: ${entry.location.latitude}", Primary)
+                }
+            }
         }
+    }
+}
+
+@Composable
+fun RelatoriosTab(trucks: List<Truck>, routes: List<RouteResponse>) {
+    Column(
+        modifier = Modifier.fillMaxSize().padding(24.dp).verticalScroll(rememberScrollState())
+    ) {
+        Text("Análise de Dados", fontWeight = FontWeight.Bold, fontSize = 24.sp)
+        Spacer(modifier = Modifier.height(24.dp))
+
+        ReportCard("Eficiência da Frota", "88%", "Baseado em ${trucks.size} caminhões", Primary)
+        Spacer(modifier = Modifier.height(16.dp))
+        ReportCard("Cobertura Urbana", "${routes.size} Rotas", "Total de bairros mapeados", Color(0xFF84CC16))
+
+        Spacer(modifier = Modifier.height(24.dp))
+        Text("Lista de Caminhões Registrados", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+        trucks.forEach { truck ->
+            Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text(truck.licensePlate, color = Color.DarkGray)
+                Text(truck.model, fontWeight = FontWeight.Bold, color = Primary)
+            }
+            HorizontalDivider(color = Color(0xFFF3F4F6))
+        }
+    }
+}
+
+@Composable
+fun AjustesTab(viewModel: DashboardViewModel) {
+    var plate by remember { mutableStateOf("") }
+    var model by remember { mutableStateOf("") }
+
+    Column(modifier = Modifier.fillMaxSize().padding(24.dp).verticalScroll(rememberScrollState())) {
+        Text("Gerenciamento do Sistema", fontWeight = FontWeight.Bold, fontSize = 24.sp)
         
-        Spacer(modifier = Modifier.height(48.dp))
+        Spacer(modifier = Modifier.height(24.dp))
+        
+        Text("Registrar Novo Caminhão", fontWeight = FontWeight.Bold, color = Primary)
+        Card(
+            Modifier.fillMaxWidth().padding(vertical = 8.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFF3F4F6))
+        ) {
+            Column(Modifier.padding(16.dp)) {
+                OutlinedTextField(value = plate, onValueChange = { plate = it }, label = { Text("Placa") }, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = model, onValueChange = { model = it }, label = { Text("Modelo") }, modifier = Modifier.fillMaxWidth())
+                Button(
+                    onClick = { viewModel.registerTruck(plate, model); plate = ""; model = "" },
+                    modifier = Modifier.padding(top = 16.dp).fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = Primary)
+                ) {
+                    Text("Registrar via POST /trucks")
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+        SettingSection(title = "Configurações de Rede") {
+            SettingItem(icon = Icons.Default.Dns, title = "Endpoint API", value = "http://10.0.2.2:8080")
+            SettingItem(icon = Icons.Default.CloudSync, title = "Sync automático", value = "Ativado")
+        }
     }
 }
 
@@ -189,10 +224,7 @@ fun ReportCard(title: String, value: String, description: String, color: Color) 
         shape = RoundedCornerShape(16.dp),
         border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFF3F4F6))
     ) {
-        Row(
-            modifier = Modifier.padding(20.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Row(modifier = Modifier.padding(20.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(title, fontSize = 14.sp, color = Color.Gray)
                 Text(value, fontSize = 28.sp, fontWeight = FontWeight.Bold, color = color)
@@ -200,52 +232,6 @@ fun ReportCard(title: String, value: String, description: String, color: Color) 
             }
             Icon(Icons.AutoMirrored.Filled.TrendingUp, null, tint = color, modifier = Modifier.size(32.dp))
         }
-    }
-}
-
-@Composable
-fun AjustesTab() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp)
-            .verticalScroll(rememberScrollState())
-    ) {
-        Text("Configurações", fontWeight = FontWeight.Bold, fontSize = 24.sp)
-        Spacer(modifier = Modifier.height(24.dp))
-
-        SettingSection(title = "Conexão IoT") {
-            SettingItem(icon = Icons.Default.Dns, title = "Broker MQTT", value = "192.168.1.100")
-            SettingItem(icon = Icons.Default.VpnKey, title = "Chave da API Java", value = "••••••••••••")
-            SettingItem(icon = Icons.Default.DeviceHub, title = "Dispositivos ESP32", value = "14 ativos")
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        SettingSection(title = "Notificações de Campo") {
-            SettingToggle(title = "Alertas de Caçamba Cheia", initial = true)
-            SettingToggle(title = "Desvios de Rota", initial = true)
-            SettingToggle(title = "Relatórios Diários", initial = false)
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        SettingSection(title = "Sistema") {
-            SettingItem(icon = Icons.Default.History, title = "Limpar Cache de Mapas")
-            SettingItem(icon = Icons.Default.Info, title = "Versão do App", value = "1.0.4-alpha")
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            TextButton(
-                onClick = { },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.textButtonColors(contentColor = Color.Red)
-            ) {
-                Text("Sair da Conta Administrativa", fontWeight = FontWeight.Bold)
-            }
-        }
-        
-        Spacer(modifier = Modifier.height(48.dp))
     }
 }
 
@@ -267,35 +253,14 @@ fun SettingSection(title: String, content: @Composable ColumnScope.() -> Unit) {
 @Composable
 fun SettingItem(icon: ImageVector, title: String, value: String? = null) {
     Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { }
-            .padding(16.dp),
+        modifier = Modifier.fillMaxWidth().clickable { }.padding(16.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(icon, null, tint = Color.Gray, modifier = Modifier.size(20.dp))
         Spacer(modifier = Modifier.width(16.dp))
         Text(title, modifier = Modifier.weight(1f), fontSize = 16.sp)
-        if (value != null) {
-            Text(value, color = Color.Gray, fontSize = 14.sp)
-        } else {
-            Icon(Icons.Default.ChevronRight, null, tint = Color.LightGray)
-        }
-    }
-}
-
-@Composable
-fun SettingToggle(title: String, initial: Boolean) {
-    var checked by remember { mutableStateOf(initial) }
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(title, fontSize = 16.sp)
-        Switch(checked = checked, onCheckedChange = { checked = it }, colors = SwitchDefaults.colors(checkedThumbColor = Primary))
+        if (value != null) Text(value, color = Color.Gray, fontSize = 14.sp)
+        else Icon(Icons.Default.ChevronRight, null, tint = Color.LightGray)
     }
 }
 
@@ -339,16 +304,6 @@ fun BottomNavigationBar(selected: Int, onSelect: (Int) -> Unit) {
                 colors = NavigationBarItemDefaults.colors(selectedIconColor = Primary, selectedTextColor = Primary)
             )
         }
-    }
-}
-
-@Composable fun AlertasTab() { 
-    Column(Modifier.fillMaxSize().padding(24.dp)) {
-        Text("Alertas do Sistema", fontWeight = FontWeight.Bold, fontSize = 24.sp)
-        Spacer(Modifier.height(16.dp))
-        AlertItem("Caminhão #04: Nível de óleo crítico", Color.Red)
-        AlertItem("Sítio do Campo: Lixeira 90%", Color(0xFFFFC107))
-        AlertItem("Caminhão #02: Fora de rota", Color(0xFFFF9800))
     }
 }
 
