@@ -28,7 +28,7 @@ import com.example.deolhonolixo.ui.theme.TextSecondary
 @Composable
 fun LoginScreen(
     onRegisterClick: () -> Unit = {},
-    onLoginSuccess: () -> Unit = {}
+    onLoginSuccess: (String) -> Unit = {}
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -105,7 +105,8 @@ fun LoginScreen(
             text = "Entrar",
             onClick = {
                 isLoading = true
-                onLoginSuccess()
+                // Simula um atraso de rede
+                onLoginSuccess(email)
             },
             isLoading = isLoading
         )

@@ -55,7 +55,7 @@ fun MonitoramentoTab() {
     )
     
     var expanded by remember { mutableStateOf(false) }
-    var selectedBairro by remember { mutableStateOf(bairros[2]) } // Boqueirão default
+    var selectedBairro by remember { mutableStateOf(bairros[2]) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Box(modifier = Modifier.fillMaxSize().background(Color(0xFFF3F4F6))) {
@@ -237,7 +237,7 @@ fun AjustesTab() {
             Spacer(modifier = Modifier.height(16.dp))
             
             TextButton(
-                onClick = { /* Logout logic */ },
+                onClick = { },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.textButtonColors(contentColor = Color.Red)
             ) {
