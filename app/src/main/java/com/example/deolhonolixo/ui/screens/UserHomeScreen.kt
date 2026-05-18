@@ -21,131 +21,23 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.deolhonolixo.data.model.listaBairrosGeo
 import com.example.deolhonolixo.ui.theme.Primary
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.*
-
-data class BairroInfo(
-    val id: String,
-    val displayNome: String,
-    val periodo: String,
-    val horarioPrevisto: String,
-    val diasSemana: List<Int>, // 1 = Dom, 2 = Seg, ..., 7 = Sáb
-    val horaInicio: Int
-)
-
-data class UltimaColeta(val data: String)
-
-val listaBairrosGeo = listOf(
-    BairroInfo("militar", "Militar", "DIA", "07:00", listOf(1, 2, 3, 4, 5, 6, 7), 7),
-    BairroInfo("canto-do-forte", "Canto do Forte", "NOITE", "18:00", listOf(2, 4, 6), 18),
-    BairroInfo("boqueirao", "Boqueirão", "NOITE", "18:00", listOf(2, 4, 6), 18),
-    BairroInfo("guilhermina", "Guilhermina", "NOITE", "18:00", listOf(2, 4, 6), 18),
-    BairroInfo("aviacao", "Aviação", "NOITE", "18:00", listOf(2, 4, 6), 18),
-    BairroInfo("tupi", "Tupi", "NOITE", "18:00", listOf(2, 4, 6), 18),
-    BairroInfo("ocian", "Ocian", "NOITE", "18:00", listOf(3, 5, 1), 18),
-    BairroInfo("mirim", "Mirim", "NOITE", "08:00", listOf(3, 5, 1), 8),
-    BairroInfo("maracana", "Maracanã", "NOITE", "18:00", listOf(3, 5, 1), 18),
-    BairroInfo("caicara", "Caiçara", "NOITE", "18:00", listOf(3, 5, 1), 18),
-    BairroInfo("real", "Real", "NOITE", "18:00", listOf(3, 5, 1), 18),
-    BairroInfo("florida", "Flórida", "DIA", "06:00", listOf(2, 4, 6), 6),
-    BairroInfo("solemar", "Solemar", "DIA", "06:00", listOf(2, 4, 6), 6),
-    BairroInfo("cidade-da-crianca", "Cidade da Criança", "DIA", "06:00", listOf(2, 4, 6), 6),
-    BairroInfo("princesa", "Princesa", "DIA", "06:00", listOf(2, 4, 6), 6),
-    BairroInfo("imperador", "Imperador", "DIA", "06:00", listOf(2, 4, 6), 6),
-    BairroInfo("melvi", "Melvi", "DIA", "06:00", listOf(2, 4, 6), 6),
-    BairroInfo("samambaia", "Samambaia", "DIA", "06:00", listOf(2, 4, 6), 6),
-    BairroInfo("esmeralda", "Esmeralda", "DIA", "06:00", listOf(2, 4, 6), 6),
-    BairroInfo("ribeiropolis", "Ribeirópolis", "DIA", "06:00", listOf(2, 4, 6), 6),
-    BairroInfo("andaragua", "Andaraguá", "DIA", "07:00", listOf(1, 2, 3, 4, 5, 6, 7), 7),
-    BairroInfo("nova-mirim", "Nova Mirim", "DIA", "06:00", listOf(3, 5, 7), 6),
-    BairroInfo("anhanguera", "Anhanguera", "DIA", "06:00", listOf(3, 5, 7), 6),
-    BairroInfo("quietude", "Quietude", "DIA", "06:00", listOf(3, 5, 7), 6),
-    BairroInfo("santa-marina", "Santa Marina", "DIA", "06:00", listOf(3, 5, 7), 6),
-    BairroInfo("tupiry", "Tupiry", "DIA", "06:00", listOf(3, 5, 7), 6),
-    BairroInfo("antartica", "Antártica", "DIA", "06:00", listOf(3, 5, 7), 6),
-    BairroInfo("vila-sonia", "Vila Sônia", "DIA", "06:00", listOf(3, 5, 7), 6),
-    BairroInfo("gloria", "Glória", "DIA", "06:00", listOf(3, 5, 7), 6),
-    BairroInfo("sitio-do-campo", "Sítio do Campo", "NOITE", "18:00", listOf(2, 4, 6), 18),
-    BairroInfo("xixova", "Xixová", "DIA", "07:00", listOf(1, 2, 3, 4, 5, 6, 7), 7),
-    BairroInfo("serra-do-mar", "Serra do Mar", "DIA", "07:00", listOf(1, 2, 3, 4, 5, 6, 7), 7)
-)
-
-fun calcularProximaColeta(bairro: BairroInfo): Pair<Long, String> {
-    val agora = Calendar.getInstance()
-    val proxima = Calendar.getInstance().apply {
-        set(Calendar.HOUR_OF_DAY, bairro.horaInicio)
-        set(Calendar.MINUTE, 0)
-        set(Calendar.SECOND, 0)
-        set(Calendar.MILLISECOND, 0)
-    }
-    
-    if (!proxima.after(agora)) {
-        proxima.add(Calendar.DAY_OF_YEAR, 1)
-    }
-    
-    while (!bairro.diasSemana.contains(proxima.get(Calendar.DAY_OF_WEEK))) {
-        proxima.add(Calendar.DAY_OF_YEAR, 1)
-    }
-    
-    val segundos = (proxima.timeInMillis - agora.timeInMillis) / 1000
-    val formatada = SimpleDateFormat("dd/MM/yyyy", Locale("pt", "BR")).format(proxima.time)
-    return Pair(segundos, formatada)
-}
-
-fun gerarUltimasColetas(bairro: BairroInfo, quantidade: Int = 4): List<UltimaColeta> {
-    val ultimas = mutableListOf<UltimaColeta>()
-    val cal = Calendar.getInstance()
-    val sdf = SimpleDateFormat("dd/MM/yyyy", Locale("pt", "BR"))
-    
-    var count = 0
-    while (count < quantidade) {
-        cal.add(Calendar.DAY_OF_YEAR, -1)
-        if (bairro.diasSemana.contains(cal.get(Calendar.DAY_OF_WEEK))) {
-            ultimas.add(UltimaColeta(sdf.format(cal.time)))
-            count++
-        }
-    }
-    return ultimas
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UserHomeScreen(onAdminClick: () -> Unit = {}) {
+fun UserHomeScreen(
+    onAdminClick: () -> Unit = {},
+    viewModel: UserHomeViewModel = viewModel()
+) {
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-    var expanded by remember { mutableStateOf(false) }
-    var selectedBairro by remember { mutableStateOf(listaBairrosGeo[7]) }
-    var secondsRemaining by remember { mutableLongStateOf(0L) }
-    var nextDate by remember { mutableStateOf("") }
-
-    LaunchedEffect(selectedBairro) {
-        val (segundos, data) = calcularProximaColeta(selectedBairro)
-        secondsRemaining = segundos
-        nextDate = data
-        while (secondsRemaining > 0) {
-            delay(1000)
-            secondsRemaining--
-        }
-    }
-
-    val ultimasColetas = remember(selectedBairro) {
-        gerarUltimasColetas(selectedBairro)
-    }
-
-    val timeDisplay = remember(secondsRemaining) {
-        val h = secondsRemaining / 3600
-        val m = (secondsRemaining % 3600) / 60
-        val s = secondsRemaining % 60
-        String.format(Locale.US, "%02d:%02d:%02d", h, m, s)
-    }
 
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         ModalNavigationDrawer(
@@ -190,10 +82,10 @@ fun UserHomeScreen(onAdminClick: () -> Unit = {}) {
                                 webViewClient = WebViewClient()
                                 settings.javaScriptEnabled = true
                                 settings.domStorageEnabled = true
-                                loadUrl("http://10.0.2.2:5174/mapa?bairro=${selectedBairro.id}")
+                                loadUrl("http://10.0.2.2:5174/mapa?bairro=${viewModel.selectedBairro.id}")
                             }
                         },
-                        update = { it.loadUrl("http://10.0.2.2:5174/mapa?bairro=${selectedBairro.id}") },
+                        update = { it.loadUrl("http://10.0.2.2:5174/mapa?bairro=${viewModel.selectedBairro.id}") },
                         modifier = Modifier.fillMaxSize()
                     )
 
@@ -222,26 +114,29 @@ fun UserHomeScreen(onAdminClick: () -> Unit = {}) {
                                 .verticalScroll(rememberScrollState()),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            ExposedDropdownMenuBox(expanded, { expanded = !expanded }) {
+                            ExposedDropdownMenuBox(viewModel.expanded, { viewModel.expanded = !viewModel.expanded }) {
                                 OutlinedTextField(
-                                    value = selectedBairro.displayNome,
+                                    value = viewModel.selectedBairro.displayNome,
                                     onValueChange = {},
                                     modifier = Modifier.fillMaxWidth().menuAnchor(),
                                     readOnly = true,
-                                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+                                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(viewModel.expanded) },
                                     shape = RoundedCornerShape(12.dp)
                                 )
-                                ExposedDropdownMenu(expanded, { expanded = false }) {
+                                ExposedDropdownMenu(viewModel.expanded, { viewModel.expanded = false }) {
                                     listaBairrosGeo.forEach { b ->
                                         DropdownMenuItem(
                                             text = { Text(b.displayNome) },
-                                            onClick = { selectedBairro = b; expanded = false }
+                                            onClick = { 
+                                                viewModel.updateBairro(b)
+                                                viewModel.expanded = false 
+                                            }
                                         )
                                     }
                                 }
                             }
                             Text("A coleta chegará no bairro em:", Modifier.padding(top = 24.dp), fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                            Text(timeDisplay, fontSize = 64.sp, fontWeight = FontWeight.Medium, color = Primary)
+                            Text(viewModel.getTimeDisplay(), fontSize = 64.sp, fontWeight = FontWeight.Medium, color = Primary)
                             
                             Card(
                                 Modifier.fillMaxWidth(),
@@ -251,12 +146,12 @@ fun UserHomeScreen(onAdminClick: () -> Unit = {}) {
                                 Column(Modifier.padding(20.dp)) {
                                     Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
                                         Text("Próxima Coleta:", color = Color.White, fontWeight = FontWeight.Bold)
-                                        Text(nextDate, color = Color.White)
+                                        Text(viewModel.nextDate, color = Color.White)
                                     }
                                     Spacer(Modifier.height(12.dp))
                                     Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
                                         Text("Horário Previsto:", color = Color.White, fontWeight = FontWeight.Bold)
-                                        Text("${selectedBairro.horarioPrevisto} (${selectedBairro.periodo})", color = Color.White)
+                                        Text("${viewModel.selectedBairro.horarioPrevisto} (${viewModel.selectedBairro.periodo})", color = Color.White)
                                     }
                                 }
                             }
@@ -280,7 +175,7 @@ fun UserHomeScreen(onAdminClick: () -> Unit = {}) {
                                         color = Color.Black
                                     )
                                     Spacer(modifier = Modifier.height(12.dp))
-                                    ultimasColetas.forEach { coleta ->
+                                    viewModel.ultimasColetas.forEach { coleta ->
                                         Text(
                                             text = coleta.data,
                                             fontSize = 16.sp,

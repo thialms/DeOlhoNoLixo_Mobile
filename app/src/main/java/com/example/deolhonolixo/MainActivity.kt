@@ -10,6 +10,8 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import com.example.deolhonolixo.ui.screens.*
+import com.example.deolhonolixo.ui.screens.login.LoginScreen
+import com.example.deolhonolixo.ui.screens.register.RegisterScreen
 import com.example.deolhonolixo.ui.theme.DeOlhoNoLixoTheme
 
 class MainActivity : ComponentActivity() {
