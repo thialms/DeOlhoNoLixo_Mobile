@@ -47,9 +47,6 @@ fun AjustesTab(viewModel: DashboardViewModel, onLogout: () -> Unit) {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Seção de Cadastro de Novo Administrador - Apenas para ROLE_ADMIN
-        // Nota: A visualização desta aba inteira já está protegida no DashboardScreen/MainActivity,
-        // mas aqui implementamos o formulário específico.
         SettingSection(title = "Cadastrar Novo Administrador") {
             var username by remember { mutableStateOf("") }
             var email by remember { mutableStateOf("") }
@@ -126,24 +123,31 @@ fun AjustesTab(viewModel: DashboardViewModel, onLogout: () -> Unit) {
             shape = RoundedCornerShape(16.dp)
         ) {
             var plate by remember { mutableStateOf("") }
+            val plateRegex = remember { Regex("^[A-Z]{3}[0-9][A-Z][0-9]{2}$") }
+
             Column(Modifier.padding(16.dp)) {
                 OutlinedTextField(
                     value = plate,
-                    onValueChange = { plate = it },
-                    label = { Text("Placa") },
+                    onValueChange = { plate = it.uppercase() },
+                    label = { Text("Placa (Ex: ABC1D23)") },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp)
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true
                 )
                 Button(
                     onClick = {
-                        viewModel.registerTruck(plate, "")
-                        plate = ""
+                        if (plate.matches(plateRegex)) {
+                            viewModel.registerTruck(plate, "")
+                            plate = ""
+                        } else {
+                            Toast.makeText(context, "Placa inválida! Use o padrão ABC1D23", Toast.LENGTH_SHORT).show()
+                        }
                     },
                     modifier = Modifier.padding(top = 16.dp).fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(containerColor = Primary),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text("Registrar via POST /trucks")
+                    Text("Registrar Caminhão")
                 }
             }
         }

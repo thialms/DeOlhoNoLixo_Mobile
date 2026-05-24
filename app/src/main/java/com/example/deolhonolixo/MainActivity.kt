@@ -38,14 +38,15 @@ class MainActivity : ComponentActivity() {
                         )
                         "user_home" -> UserHomeScreen(
                             onAdminClick = { 
-                                // Agora sempre redireciona para o login ao clicar em entrar como administrador
                                 currentScreen = "login"
                             }
                         )
                         "login" -> LoginScreen(
                             onLoginSuccess = { 
-                                // Sucesso no login redireciona para dashboard
                                 currentScreen = "dashboard"
+                            },
+                            onBack = {
+                                currentScreen = "user_home"
                             }
                         )
                         "dashboard" -> {
