@@ -35,3 +35,22 @@ data class TruckHistory(
     val location: Geolocation,
     val timestamp: String
 )
+
+data class LoginRequest(
+    val email: String,
+    val password: String
+)
+
+// DTO corrigido para refletir exatamente o JSON: {"username": "...", "token": "..."}
+data class LoginResponse(
+    val username: String,
+    val token: String
+)
+
+data class RegisterRequest(
+    val username: String,
+    val email: String,
+    val password: String,
+    val confirmPassword: String,
+    val role: List<String>
+)

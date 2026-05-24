@@ -4,6 +4,12 @@ import com.example.deolhonolixo.data.model.*
 import retrofit2.http.*
 
 interface ApiService {
+    @POST("auth/login")
+    suspend fun login(@Body request: LoginRequest): LoginResponse
+
+    @POST("auth/register")
+    suspend fun register(@Body request: RegisterRequest): Unit
+
     @GET("routes")
     suspend fun getRoutes(): List<RouteResponse>
 

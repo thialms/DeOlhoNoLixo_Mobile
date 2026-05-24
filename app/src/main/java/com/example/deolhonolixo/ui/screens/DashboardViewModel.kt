@@ -28,6 +28,9 @@ class DashboardViewModel(
     private val _truckHistory = MutableStateFlow<List<TruckHistory>>(emptyList())
     val truckHistory: StateFlow<List<TruckHistory>> = _truckHistory.asStateFlow()
 
+    private val _registerStatus = MutableStateFlow<String?>(null)
+    val registerStatus: StateFlow<String?> = _registerStatus.asStateFlow()
+
     init {
         loadDashboardData()
     }
@@ -40,7 +43,6 @@ class DashboardViewModel(
                 _routes.value = repository.getRoutes()
                 _truckHistory.value = repository.getTrucksHistory()
             } catch (e: Exception) {
-                // Log de erro profissional
                 e.printStackTrace()
             }
         }
@@ -55,5 +57,20 @@ class DashboardViewModel(
                 e.printStackTrace()
             }
         }
+    }
+
+    fun registerAdmin(request: RegisterRequest) {
+        viewModelScope.launch {
+            try {
+                repository.registerAdmin(request)
+                _registerStatus.value = "Administrador cadastrado com sucesso!"
+            } catch (e: Exception) {
+                _registerStatus.value = "Erro ao cadastrar: ${e.message}"
+            }
+        }
+    }
+    
+    fun clearRegisterStatus() {
+        _registerStatus.value = null
     }
 }

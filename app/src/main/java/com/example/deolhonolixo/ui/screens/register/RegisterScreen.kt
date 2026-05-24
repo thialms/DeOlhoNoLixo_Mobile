@@ -20,9 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.deolhonolixo.ui.components.CustomTextField
-import com.example.deolhonolixo.ui.components.GoogleButton
 import com.example.deolhonolixo.ui.components.PrimaryButton
-import com.example.deolhonolixo.ui.components.SocialDivider
 import com.example.deolhonolixo.ui.theme.Primary
 import com.example.deolhonolixo.ui.theme.TextSecondary
 
@@ -110,10 +108,6 @@ fun RegisterScreen(
             onClick = { viewModel.register(onRegisterSuccess) },
             isLoading = viewModel.isLoading
         )
-
-        SocialDivider()
-
-        GoogleButton(onClick = { })
 
         Spacer(modifier = Modifier.weight(1f))
         Spacer(modifier = Modifier.height(32.dp))

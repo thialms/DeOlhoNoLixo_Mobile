@@ -6,8 +6,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,78 +17,42 @@ import androidx.compose.ui.unit.sp
 import com.example.deolhonolixo.data.model.RouteResponse
 import com.example.deolhonolixo.data.model.Truck
 import com.example.deolhonolixo.data.model.UrbanGeometryResponse
-import com.example.deolhonolixo.ui.theme.Primary
+import com.example.deolhonolixo.data.model.listaBairrosGeo
+import com.example.deolhonolixo.ui.components.BairroDropdown
+import com.example.deolhonolixo.ui.components.WasteMapView
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MonitoramentoTab(
     trucks: List<Truck>,
     urbanGeometry: List<UrbanGeometryResponse>,
     routes: List<RouteResponse>
 ) {
-    var expanded by remember { mutableStateOf(false) }
-    var selectedBairro by remember { mutableStateOf("Todos os Setores") }
+    // Reutilizando a lógica de estado do usuário para o mapa
+    var selectedBairro by remember { mutableStateOf(listaBairrosGeo[0]) }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        Box(modifier = Modifier.fillMaxSize().background(Color(0xFFF3F4F6))) {
-            trucks.forEachIndexed { index, truck ->
-                Icon(
-                    imageVector = Icons.Default.LocalShipping,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .offset(x = (40 + index * 30).dp, y = (100 + index * 50).dp)
-                        .size(28.dp),
-                    tint = if (truck.status == "Ativo") Color(0xFF84CC16) else Primary
-                )
-            }
-        }
+        // Reutilizando exatamente o mesmo mapa
+        WasteMapView(
+            bairroId = selectedBairro.id,
+            modifier = Modifier.fillMaxSize()
+        )
 
-        ExposedDropdownMenuBox(
-            expanded = expanded,
-            onExpandedChange = { expanded = !expanded },
+        // Reutilizando exatamente o mesmo dropdown
+        BairroDropdown(
+            selectedBairro = selectedBairro,
+            onBairroSelected = { selectedBairro = it },
             modifier = Modifier
                 .padding(16.dp)
                 .align(Alignment.TopStart)
-        ) {
-            OutlinedTextField(
-                value = selectedBairro,
-                onValueChange = {},
-                readOnly = true,
-                label = { Text("Filtro Geográfico") },
-                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                modifier = Modifier
-                    .menuAnchor()
-                    .background(Color.White, RoundedCornerShape(12.dp)),
-                shape = RoundedCornerShape(12.dp)
-            )
-            ExposedDropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false }
-            ) {
-                DropdownMenuItem(
-                    text = { Text("Todos os Setores") },
-                    onClick = {
-                        selectedBairro = "Todos os Setores"
-                        expanded = false
-                    }
-                )
-                urbanGeometry.forEach { item ->
-                    DropdownMenuItem(
-                        text = { Text(item.name) },
-                        onClick = {
-                            selectedBairro = item.name
-                            expanded = false
-                        }
-                    )
-                }
-            }
-        }
+                .width(250.dp)
+                .background(Color.White.copy(alpha = 0.9f), RoundedCornerShape(12.dp))
+        )
 
         Surface(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .fillMaxHeight(0.5f),
+                .fillMaxHeight(0.4f),
             color = Color.White,
             shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
             shadowElevation = 16.dp

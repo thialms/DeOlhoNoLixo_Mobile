@@ -9,14 +9,20 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import com.example.deolhonolixo.data.api.NetworkClient
+import com.example.deolhonolixo.data.api.SessionManager
 import com.example.deolhonolixo.ui.screens.*
 import com.example.deolhonolixo.ui.screens.login.LoginScreen
-import com.example.deolhonolixo.ui.screens.register.RegisterScreen
 import com.example.deolhonolixo.ui.theme.DeOlhoNoLixoTheme
 
 class MainActivity : ComponentActivity() {
+    private lateinit var sessionManager: SessionManager
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        NetworkClient.init(this)
+        sessionManager = SessionManager(this)
+        
         enableEdgeToEdge()
         setContent {
             DeOlhoNoLixoTheme {
@@ -31,23 +37,23 @@ class MainActivity : ComponentActivity() {
                             onTimeout = { currentScreen = "user_home" }
                         )
                         "user_home" -> UserHomeScreen(
-                            onAdminClick = { currentScreen = "login" }
-                        )
-                        "login" -> LoginScreen(
-                            onRegisterClick = { currentScreen = "register" },
-                            onLoginSuccess = { email ->
-                                if (email.contains("admin", ignoreCase = true)) {
-                                    currentScreen = "dashboard"
-                                } else {
-                                    currentScreen = "user_home"
-                                }
+                            onAdminClick = { 
+                                // Agora sempre redireciona para o login ao clicar em entrar como administrador
+                                currentScreen = "login"
                             }
                         )
-                        "register" -> RegisterScreen(
-                            onLoginClick = { currentScreen = "login" },
-                            onRegisterSuccess = { currentScreen = "login" }
+                        "login" -> LoginScreen(
+                            onLoginSuccess = { 
+                                // Sucesso no login redireciona para dashboard
+                                currentScreen = "dashboard"
+                            }
                         )
-                        "dashboard" -> DashboardScreen()
+                        "dashboard" -> {
+                            DashboardScreen(onLogout = {
+                                sessionManager.clearSession()
+                                currentScreen = "user_home"
+                            })
+                        }
                     }
                 }
             }

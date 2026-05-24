@@ -12,7 +12,10 @@ import com.example.deolhonolixo.ui.screens.dashboard.*
 import com.example.deolhonolixo.ui.theme.Primary
 
 @Composable
-fun DashboardScreen(viewModel: DashboardViewModel = viewModel()) {
+fun DashboardScreen(
+    onLogout: () -> Unit = {},
+    viewModel: DashboardViewModel = viewModel()
+) {
     var currentTab by remember { mutableIntStateOf(0) }
     val trucks by viewModel.trucks.collectAsState()
     val routes by viewModel.routes.collectAsState()
@@ -29,7 +32,7 @@ fun DashboardScreen(viewModel: DashboardViewModel = viewModel()) {
                 0 -> MonitoramentoTab(trucks, urbanGeometry, routes)
                 1 -> AlertasTab(history)
                 2 -> RelatoriosTab(trucks, routes)
-                3 -> AjustesTab(viewModel)
+                3 -> AjustesTab(viewModel, onLogout)
             }
         }
     }

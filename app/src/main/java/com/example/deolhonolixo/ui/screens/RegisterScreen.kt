@@ -19,9 +19,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.deolhonolixo.ui.components.CustomTextField
-import com.example.deolhonolixo.ui.components.GoogleButton
 import com.example.deolhonolixo.ui.components.PrimaryButton
-import com.example.deolhonolixo.ui.components.SocialDivider
 import com.example.deolhonolixo.ui.theme.Primary
 import com.example.deolhonolixo.ui.theme.TextSecondary
 
@@ -117,10 +115,6 @@ fun RegisterScreen(
             },
             isLoading = isLoading
         )
-
-        SocialDivider()
-
-        GoogleButton(onClick = { /* Handle Google Login */ })
 
         Spacer(modifier = Modifier.weight(1f))
         Spacer(modifier = Modifier.height(32.dp))

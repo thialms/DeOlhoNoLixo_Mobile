@@ -12,6 +12,11 @@ import java.util.*
  */
 class WasteRepository(private val apiService: ApiService = NetworkClient.apiService) {
 
+    // Autenticação e Registro
+    suspend fun login(request: LoginRequest): LoginResponse = apiService.login(request)
+    
+    suspend fun registerAdmin(request: RegisterRequest) = apiService.register(request)
+
     // Dados Remotos (API)
     suspend fun getTrucks(): List<Truck> = apiService.getTrucks()
     suspend fun getUrbanGeometry(): List<UrbanGeometryResponse> = apiService.getUrbanGeometry()

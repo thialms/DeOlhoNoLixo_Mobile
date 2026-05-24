@@ -5,24 +5,65 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.delay
+import com.example.deolhonolixo.data.api.SessionManager
+import com.example.deolhonolixo.data.model.LoginRequest
+import com.example.deolhonolixo.data.repository.WasteRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import android.util.Log
 
-class LoginViewModel : ViewModel() {
+class LoginViewModel(
+    private val repository: WasteRepository = WasteRepository(),
+    private val sessionManager: SessionManager
+) : ViewModel() {
+
     var email by mutableStateOf("")
     var password by mutableStateOf("")
-    var isLoading by mutableStateOf(false)
-        private set
 
-    fun onEmailChange(newValue: String) { email = newValue }
-    fun onPasswordChange(newValue: String) { password = newValue }
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
-    fun login(onSuccess: (String) -> Unit) {
+    private val _error = MutableStateFlow<String?>(null)
+    val error: StateFlow<String?> = _error.asStateFlow()
+
+    fun onEmailChange(newValue: String) {
+        email = newValue
+    }
+
+    fun onPasswordChange(newValue: String) {
+        password = newValue
+    }
+
+    fun login(onSuccess: () -> Unit) {
+        if (email.isBlank() || password.isBlank()) {
+            _error.value = "Por favor, preencha todos os campos."
+            return
+        }
+
         viewModelScope.launch {
-            isLoading = true
-            delay(1000) // Simulação de rede
-            isLoading = false
-            onSuccess(email)
+            _isLoading.value = true
+            _error.value = null
+            try {
+                Log.d("LoginViewModel", "Iniciando login para: $email")
+                val response = repository.login(LoginRequest(email, password))
+                Log.d("LoginViewModel", "Login bem-sucedido. Usuário: ${response.username}")
+                
+                sessionManager.saveAuthToken(response.token)
+                
+                // Nota: O endpoint de login atual não retorna roles. 
+                // A role ROLE_ADMIN deve ser verificada através de outro mecanismo ou endpoint 
+                // se necessário, mas para evitar o erro "non-null is null", removemos o acesso
+                // direto a campos não presentes no JSON.
+                
+                onSuccess()
+            } catch (e: Exception) {
+                Log.e("LoginViewModel", "Erro na autenticação", e)
+                _error.value = "Falha na autenticação: ${e.message}"
+            } finally {
+                _isLoading.value = false
+            }
         }
     }
 }

@@ -1,8 +1,5 @@
 package com.example.deolhonolixo.ui.screens
 
-import android.view.ViewGroup
-import android.webkit.WebView
-import android.webkit.WebViewClient
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -24,9 +21,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.deolhonolixo.data.model.listaBairrosGeo
+import com.example.deolhonolixo.ui.components.BairroDropdown
+import com.example.deolhonolixo.ui.components.WasteMapView
 import com.example.deolhonolixo.ui.theme.Primary
 import kotlinx.coroutines.launch
 
@@ -75,17 +72,8 @@ fun UserHomeScreen(
         ) {
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
                 Box(Modifier.fillMaxSize()) {
-                    AndroidView(
-                        factory = { context ->
-                            WebView(context).apply {
-                                layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
-                                webViewClient = WebViewClient()
-                                settings.javaScriptEnabled = true
-                                settings.domStorageEnabled = true
-                                loadUrl("http://10.0.2.2:5174/mapa?bairro=${viewModel.selectedBairro.id}")
-                            }
-                        },
-                        update = { it.loadUrl("http://10.0.2.2:5174/mapa?bairro=${viewModel.selectedBairro.id}") },
+                    WasteMapView(
+                        bairroId = viewModel.selectedBairro.id,
                         modifier = Modifier.fillMaxSize()
                     )
 
@@ -114,27 +102,12 @@ fun UserHomeScreen(
                                 .verticalScroll(rememberScrollState()),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            ExposedDropdownMenuBox(viewModel.expanded, { viewModel.expanded = !viewModel.expanded }) {
-                                OutlinedTextField(
-                                    value = viewModel.selectedBairro.displayNome,
-                                    onValueChange = {},
-                                    modifier = Modifier.fillMaxWidth().menuAnchor(),
-                                    readOnly = true,
-                                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(viewModel.expanded) },
-                                    shape = RoundedCornerShape(12.dp)
-                                )
-                                ExposedDropdownMenu(viewModel.expanded, { viewModel.expanded = false }) {
-                                    listaBairrosGeo.forEach { b ->
-                                        DropdownMenuItem(
-                                            text = { Text(b.displayNome) },
-                                            onClick = { 
-                                                viewModel.updateBairro(b)
-                                                viewModel.expanded = false 
-                                            }
-                                        )
-                                    }
-                                }
-                            }
+                            BairroDropdown(
+                                selectedBairro = viewModel.selectedBairro,
+                                onBairroSelected = { viewModel.updateBairro(it) },
+                                modifier = Modifier.fillMaxWidth()
+                            )
+
                             Text("A coleta chegará no bairro em:", Modifier.padding(top = 24.dp), fontWeight = FontWeight.Bold, fontSize = 18.sp)
                             Text(viewModel.getTimeDisplay(), fontSize = 64.sp, fontWeight = FontWeight.Medium, color = Primary)
                             

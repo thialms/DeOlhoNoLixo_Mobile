@@ -1,7 +1,8 @@
 package com.example.deolhonolixo.ui.components
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
+import android.view.ViewGroup
+import android.webkit.WebView
+import android.webkit.WebViewClient
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -13,15 +14,16 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.viewinterop.AndroidView
+import com.example.deolhonolixo.data.model.BairroInfo
+import com.example.deolhonolixo.data.model.listaBairrosGeo
 import com.example.deolhonolixo.ui.theme.Border
-import com.example.deolhonolixo.ui.theme.GoogleButtonBorder
 import com.example.deolhonolixo.ui.theme.Primary
 import com.example.deolhonolixo.ui.theme.TextSecondary
 
@@ -115,63 +117,60 @@ fun PrimaryButton(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GoogleButton(
-    onClick: () -> Unit,
+fun BairroDropdown(
+    selectedBairro: BairroInfo,
+    onBairroSelected: (BairroInfo) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    OutlinedButton(
-        onClick = onClick,
+    var expanded by remember { mutableStateOf(false) }
+
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = !expanded },
         modifier = modifier
-            .fillMaxWidth()
-            .height(56.dp),
-        shape = RoundedCornerShape(12.dp),
-        border = BorderStroke(1.dp, GoogleButtonBorder),
-        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Black)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            // Placeholder for Google Icon - In a real app, use a real vector
-            Text(
-                text = "G ",
-                color = Color.Red, // Simple placeholder
-                fontWeight = FontWeight.Bold,
-                fontSize = 20.sp
+        OutlinedTextField(
+            value = selectedBairro.displayNome,
+            onValueChange = {},
+            modifier = Modifier.fillMaxWidth().menuAnchor(),
+            readOnly = true,
+            label = { Text("Selecione o Bairro") },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded) },
+            shape = RoundedCornerShape(12.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Primary,
+                unfocusedBorderColor = Border
             )
-            Text(
-                text = "Continuar com Google",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Medium
-            )
+        )
+        ExposedDropdownMenu(expanded, { expanded = false }) {
+            listaBairrosGeo.forEach { b ->
+                DropdownMenuItem(
+                    text = { Text(b.displayNome) },
+                    onClick = {
+                        onBairroSelected(b)
+                        expanded = false
+                    }
+                )
+            }
         }
     }
 }
 
 @Composable
-fun SocialDivider() {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        HorizontalDivider(
-            modifier = Modifier.weight(1f),
-            thickness = 1.dp,
-            color = Border
-        )
-        Text(
-            text = "ou",
-            modifier = Modifier.padding(horizontal = 16.dp),
-            style = MaterialTheme.typography.bodyMedium,
-            color = TextSecondary
-        )
-        HorizontalDivider(
-            modifier = Modifier.weight(1f),
-            thickness = 1.dp,
-            color = Border
-        )
-    }
+fun WasteMapView(bairroId: String, modifier: Modifier = Modifier) {
+    AndroidView(
+        factory = { context ->
+            WebView(context).apply {
+                layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+                webViewClient = WebViewClient()
+                settings.javaScriptEnabled = true
+                settings.domStorageEnabled = true
+                loadUrl("http://10.0.2.2:5174/mapa?bairro=$bairroId")
+            }
+        },
+        update = { it.loadUrl("http://10.0.2.2:5174/mapa?bairro=$bairroId") },
+        modifier = modifier
+    )
 }
