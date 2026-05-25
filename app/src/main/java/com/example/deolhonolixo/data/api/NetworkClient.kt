@@ -1,6 +1,7 @@
 package com.example.deolhonolixo.data.api
 
 import android.content.Context
+import com.example.deolhonolixo.BuildConfig
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -8,7 +9,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object NetworkClient {
-    private const val BASE_URL = "http://10.0.2.2:8080/"
+    private val BASE_URL = BuildConfig.API_URL
 
     private var sessionManager: SessionManager? = null
 

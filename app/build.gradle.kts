@@ -1,7 +1,21 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.compose.compiler)
+}
+
+// Função para carregar variáveis do .env
+fun getEnvProperty(key: String): String {
+    val envFile = rootProject.file(".env")
+    if (envFile.exists()) {
+        val properties = Properties()
+        properties.load(FileInputStream(envFile))
+        return properties.getProperty(key) ?: ""
+    }
+    return ""
 }
 
 android {
@@ -19,6 +33,9 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
+
+        // Adiciona a URL da API ao BuildConfig
+        buildConfigField("String", "API_URL", "\"${getEnvProperty("API_URL")}\"")
     }
 
     buildTypes {
@@ -39,6 +56,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
     packaging {
         resources {

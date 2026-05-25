@@ -20,6 +20,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.deolhonolixo.BuildConfig
 import com.example.deolhonolixo.data.model.RegisterRequest
 import com.example.deolhonolixo.ui.components.CustomTextField
 import com.example.deolhonolixo.ui.screens.DashboardViewModel
@@ -158,7 +159,7 @@ fun AjustesTab(viewModel: DashboardViewModel, onLogout: () -> Unit) {
             SettingItem(
                 icon = Icons.Default.Dns,
                 title = "Endpoint API",
-                value = "http://10.0.2.2:8080"
+                value = BuildConfig.API_URL
             )
             SettingItem(
                 icon = Icons.Default.CloudSync,
