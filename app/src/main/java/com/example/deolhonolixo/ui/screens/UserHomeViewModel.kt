@@ -9,12 +9,15 @@ import androidx.lifecycle.viewModelScope
 import com.example.deolhonolixo.data.model.BairroInfo
 import com.example.deolhonolixo.data.model.UltimaColeta
 import com.example.deolhonolixo.data.model.listaBairrosGeo
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 
 class UserHomeViewModel : ViewModel() {
+
+    private var countdownJob: Job? = null
 
     var selectedBairro by mutableStateOf(listaBairrosGeo[7])
         private set
@@ -44,7 +47,8 @@ class UserHomeViewModel : ViewModel() {
     }
 
     private fun startCountdown() {
-        viewModelScope.launch {
+        countdownJob?.cancel()
+        countdownJob = viewModelScope.launch {
             while (secondsRemaining > 0) {
                 delay(1000)
                 secondsRemaining--

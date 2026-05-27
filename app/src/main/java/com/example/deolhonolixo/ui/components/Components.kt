@@ -167,10 +167,10 @@ fun WasteMapView(bairroId: String, modifier: Modifier = Modifier) {
                 webViewClient = WebViewClient()
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
-                loadUrl("http://10.0.2.2:5174/mapa?bairro=$bairroId")
+                loadUrl("http://10.0.2.2:5173/mapa?bairro=$bairroId")
             }
         },
-        update = { it.loadUrl("http://10.0.2.2:5174/mapa?bairro=$bairroId") },
+        update = { it.loadUrl("http://10.0.2.2:5173/mapa?bairro=$bairroId") },
         modifier = modifier
     )
 }

@@ -74,7 +74,10 @@ fun UserHomeScreen(
                 Box(Modifier.fillMaxSize()) {
                     WasteMapView(
                         bairroId = viewModel.selectedBairro.id,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .fillMaxHeight(0.60f) // Ocupa 55% + 5% de margem para o border radius
+                            .align(Alignment.TopCenter)
                     )
 
                     IconButton(
@@ -89,9 +92,9 @@ fun UserHomeScreen(
 
                     Surface(
                         Modifier
-                            .align(Alignment.BottomCenter)
                             .fillMaxWidth()
-                            .fillMaxHeight(0.45f),
+                            .fillMaxHeight(0.45f)
+                            .align(Alignment.BottomCenter),
                         shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
                         shadowElevation = 16.dp
                     ) {
