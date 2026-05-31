@@ -11,21 +11,19 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.example.deolhonolixo.data.model.BairroInfo
 import com.example.deolhonolixo.data.model.listaBairrosGeo
 import com.example.deolhonolixo.ui.theme.Border
 import com.example.deolhonolixo.ui.theme.Primary
 import com.example.deolhonolixo.ui.theme.TextSecondary
+import com.example.deolhonolixo.util.Constants
 
 @Composable
 fun CustomTextField(
@@ -167,10 +165,10 @@ fun WasteMapView(bairroId: String, modifier: Modifier = Modifier) {
                 webViewClient = WebViewClient()
                 settings.javaScriptEnabled = true
                 settings.domStorageEnabled = true
-                loadUrl("http://10.0.2.2:5173/mapa?bairro=$bairroId")
+                loadUrl("${Constants.MAP_URL}$bairroId")
             }
         },
-        update = { it.loadUrl("http://10.0.2.2:5173/mapa?bairro=$bairroId") },
+        update = { it.loadUrl("${Constants.MAP_URL}$bairroId") },
         modifier = modifier
     )
 }

@@ -34,7 +34,10 @@ fun MonitoramentoTab(
         // Reutilizando exatamente o mesmo mapa
         WasteMapView(
             bairroId = selectedBairro.id,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.60f)
+                .align(Alignment.TopCenter)
         )
 
         // Reutilizando exatamente o mesmo dropdown
@@ -52,7 +55,7 @@ fun MonitoramentoTab(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .fillMaxHeight(0.4f),
+                .fillMaxHeight(0.45f),
             color = Color.White,
             shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
             shadowElevation = 16.dp

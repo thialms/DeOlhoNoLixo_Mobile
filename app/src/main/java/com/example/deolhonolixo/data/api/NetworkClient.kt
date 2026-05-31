@@ -1,15 +1,16 @@
 package com.example.deolhonolixo.data.api
 
 import android.content.Context
-import com.example.deolhonolixo.BuildConfig
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
+import com.example.deolhonolixo.util.Constants
+
 object NetworkClient {
-    private val BASE_URL = BuildConfig.API_URL
+    private val BASE_URL = Constants.BASE_URL
 
     private var sessionManager: SessionManager? = null
 
