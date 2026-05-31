@@ -25,7 +25,7 @@ class WasteRepository(private val apiService: ApiService = NetworkClient.apiServ
     suspend fun registerTruck(truck: Truck) = apiService.registerTruck(truck)
 
     // Dados Locais e Lógica de Domínio
-    fun getBairros(): List<BairroInfo> = listaBairrosGeo
+    suspend fun getBairros(): List<BairroInfo> = apiService.getUrbanGeometry().map { it.toBairroInfo() }
 
     fun calcularProximaColeta(bairro: BairroInfo): Pair<Long, String> {
         val agora = Calendar.getInstance()

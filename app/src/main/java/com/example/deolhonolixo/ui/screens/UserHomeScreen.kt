@@ -27,6 +27,24 @@ import com.example.deolhonolixo.ui.components.WasteMapView
 import com.example.deolhonolixo.ui.theme.Primary
 import kotlinx.coroutines.launch
 
+@Composable
+fun CountdownSection(viewModel: UserHomeViewModel) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            "A coleta chegará no bairro em:",
+            Modifier.padding(top = 24.dp),
+            fontWeight = FontWeight.Bold,
+            fontSize = 18.sp
+        )
+        Text(
+            viewModel.getTimeDisplay(),
+            fontSize = 64.sp,
+            fontWeight = FontWeight.Medium,
+            color = Primary
+        )
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserHomeScreen(
@@ -72,100 +90,121 @@ fun UserHomeScreen(
         ) {
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
                 Box(Modifier.fillMaxSize()) {
-                    WasteMapView(
-                        bairroId = viewModel.selectedBairro.id,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .fillMaxHeight(0.60f) // Ocupa 55% + 5% de margem para o border radius
-                            .align(Alignment.TopCenter)
-                    )
+                    val selectedBairro = viewModel.selectedBairro
+                    val bairros = viewModel.bairros
 
-                    IconButton(
-                        onClick = { scope.launch { drawerState.open() } },
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(top = 48.dp, end = 16.dp)
-                            .size(56.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(Primary.copy(alpha = 0.9f))
-                    ) { Icon(Icons.Default.Menu, null, tint = Color.White) }
-
-                    Surface(
-                        Modifier
-                            .fillMaxWidth()
-                            .fillMaxHeight(0.45f)
-                            .align(Alignment.BottomCenter),
-                        shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
-                        shadowElevation = 16.dp
-                    ) {
-                        Column(
-                            Modifier
-                                .padding(24.dp)
+                    if (selectedBairro == null) {
+                        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
+                    } else {
+                        WasteMapView(
+                            bairroId = selectedBairro.id,
+                            modifier = Modifier
                                 .fillMaxWidth()
-                                .verticalScroll(rememberScrollState()),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                                .fillMaxHeight(0.60f) // Ocupa 55% + 5% de margem para o border radius
+                                .align(Alignment.TopCenter)
+                        )
+
+                        IconButton(
+                            onClick = { scope.launch { drawerState.open() } },
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(top = 48.dp, end = 16.dp)
+                                .size(56.dp)
+                                .clip(RoundedCornerShape(16.dp))
+                                .background(Primary.copy(alpha = 0.9f))
+                        ) { Icon(Icons.Default.Menu, null, tint = Color.White) }
+
+                        Surface(
+                            Modifier
+                                .fillMaxWidth()
+                                .fillMaxHeight(0.45f)
+                                .align(Alignment.BottomCenter),
+                            shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
+                            shadowElevation = 16.dp
                         ) {
-                            BairroDropdown(
-                                selectedBairro = viewModel.selectedBairro,
-                                onBairroSelected = { viewModel.updateBairro(it) },
-                                modifier = Modifier.fillMaxWidth()
-                            )
-
-                            Text("A coleta chegará no bairro em:", Modifier.padding(top = 24.dp), fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                            Text(viewModel.getTimeDisplay(), fontSize = 64.sp, fontWeight = FontWeight.Medium, color = Primary)
-                            
-                            Card(
-                                Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(containerColor = Primary),
-                                shape = RoundedCornerShape(16.dp)
+                            Column(
+                                Modifier
+                                    .padding(24.dp)
+                                    .fillMaxWidth()
+                                    .verticalScroll(rememberScrollState()),
+                                horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Column(Modifier.padding(20.dp)) {
-                                    Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
-                                        Text("Próxima Coleta:", color = Color.White, fontWeight = FontWeight.Bold)
-                                        Text(viewModel.nextDate, color = Color.White)
-                                    }
-                                    Spacer(Modifier.height(12.dp))
-                                    Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
-                                        Text("Horário Previsto:", color = Color.White, fontWeight = FontWeight.Bold)
-                                        Text("${viewModel.selectedBairro.horarioPrevisto} (${viewModel.selectedBairro.periodo})", color = Color.White)
-                                    }
-                                }
-                            }
+                                BairroDropdown(
+                                    selectedBairro = selectedBairro,
+                                    bairros = bairros,
+                                    onBairroSelected = { viewModel.updateBairro(it) },
+                                    modifier = Modifier.fillMaxWidth()
+                                )
 
-                            Spacer(modifier = Modifier.height(24.dp))
-                            
-                            Card(
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(containerColor = Color(0xFFF9A825)),
-                                shape = RoundedCornerShape(16.dp),
-                                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-                            ) {
-                                Column(
-                                    modifier = Modifier.padding(20.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally
+                                CountdownSection(viewModel)
+
+                                Card(
+                                    Modifier.fillMaxWidth(),
+                                    colors = CardDefaults.cardColors(containerColor = Primary),
+                                    shape = RoundedCornerShape(16.dp)
                                 ) {
-                                    Text(
-                                        text = "Últimas coletas",
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 18.sp,
-                                        color = Color.Black
-                                    )
-                                    Spacer(modifier = Modifier.height(12.dp))
-                                    viewModel.ultimasColetas.forEach { coleta ->
-                                        Text(
-                                            text = coleta.data,
-                                            fontSize = 16.sp,
-                                            color = Color.Black,
-                                            modifier = Modifier.padding(vertical = 2.dp)
-                                        )
+                                    Column(Modifier.padding(20.dp)) {
+                                        Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
+                                            Text(
+                                                "Próxima Coleta:",
+                                                color = Color.White,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                            Text(viewModel.nextDate, color = Color.White)
+                                        }
+                                        Spacer(Modifier.height(12.dp))
+                                        Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
+                                            Text(
+                                                "Horário Previsto:",
+                                                color = Color.White,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                            Text(
+                                                "${selectedBairro.horarioPrevisto} (${selectedBairro.periodo})",
+                                                color = Color.White
+                                            )
+                                        }
                                     }
                                 }
-                            }
 
-                            Spacer(modifier = Modifier.height(24.dp))
-                            Text("Perdeu o horário?", fontWeight = FontWeight.Bold)
-                            Text("Crie um alerta para lembrar", color = Primary, modifier = Modifier.clickable { })
-                            Spacer(modifier = Modifier.height(16.dp))
+                                Spacer(modifier = Modifier.height(24.dp))
+
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF9A825)),
+                                    shape = RoundedCornerShape(16.dp),
+                                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                                ) {
+                                    Column(
+                                        modifier = Modifier.padding(20.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Text(
+                                            text = "Últimas coletas",
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 18.sp,
+                                            color = Color.Black
+                                        )
+                                        Spacer(modifier = Modifier.height(12.dp))
+                                        viewModel.ultimasColetas.forEach { coleta ->
+                                            Text(
+                                                text = coleta.data,
+                                                fontSize = 16.sp,
+                                                color = Color.Black,
+                                                modifier = Modifier.padding(vertical = 2.dp)
+                                            )
+                                        }
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.height(24.dp))
+                                Text("Perdeu o horário?", fontWeight = FontWeight.Bold)
+                                Text(
+                                    "Crie um alerta para lembrar",
+                                    color = Primary,
+                                    modifier = Modifier.clickable { })
+                                Spacer(modifier = Modifier.height(16.dp))
+                            }
                         }
                     }
                 }

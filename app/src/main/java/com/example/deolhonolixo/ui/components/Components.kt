@@ -19,7 +19,6 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.example.deolhonolixo.data.model.BairroInfo
-import com.example.deolhonolixo.data.model.listaBairrosGeo
 import com.example.deolhonolixo.ui.theme.Border
 import com.example.deolhonolixo.ui.theme.Primary
 import com.example.deolhonolixo.ui.theme.TextSecondary
@@ -119,6 +118,7 @@ fun PrimaryButton(
 @Composable
 fun BairroDropdown(
     selectedBairro: BairroInfo,
+    bairros: List<BairroInfo>,
     onBairroSelected: (BairroInfo) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -143,7 +143,7 @@ fun BairroDropdown(
             )
         )
         ExposedDropdownMenu(expanded, { expanded = false }) {
-            listaBairrosGeo.forEach { b ->
+            bairros.forEach { b ->
                 DropdownMenuItem(
                     text = { Text(b.displayNome) },
                     onClick = {

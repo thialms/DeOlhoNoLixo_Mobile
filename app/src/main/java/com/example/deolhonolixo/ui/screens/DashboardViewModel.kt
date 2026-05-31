@@ -4,10 +4,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.deolhonolixo.data.model.*
 import com.example.deolhonolixo.data.repository.WasteRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * ViewModel responsável pela lógica do Dashboard administrativo.
@@ -38,10 +40,10 @@ class DashboardViewModel(
     fun loadDashboardData() {
         viewModelScope.launch {
             try {
-                _trucks.value = repository.getTrucks()
-                _urbanGeometry.value = repository.getUrbanGeometry()
-                _routes.value = repository.getRoutes()
-                _truckHistory.value = repository.getTrucksHistory()
+                _trucks.value = withContext(Dispatchers.IO) { repository.getTrucks() }
+                _urbanGeometry.value = withContext(Dispatchers.IO) { repository.getUrbanGeometry() }
+                _routes.value = withContext(Dispatchers.IO) { repository.getRoutes() }
+                _truckHistory.value = withContext(Dispatchers.IO) { repository.getTrucksHistory() }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
