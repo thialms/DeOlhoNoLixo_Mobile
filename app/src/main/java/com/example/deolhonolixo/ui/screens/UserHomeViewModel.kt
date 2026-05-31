@@ -8,15 +8,23 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.deolhonolixo.data.model.BairroInfo
 import com.example.deolhonolixo.data.model.UltimaColeta
-import com.example.deolhonolixo.data.model.listaBairrosGeo
+import com.example.deolhonolixo.data.repository.WasteRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.*
 
-class UserHomeViewModel : ViewModel() {
+class UserHomeViewModel(private val repository: WasteRepository = WasteRepository()) : ViewModel() {
 
-    var selectedBairro by mutableStateOf(listaBairrosGeo[7])
+    private var countdownJob: Job? = null
+
+    var bairros by mutableStateOf<List<BairroInfo>>(emptyList())
+        private set
+
+    var selectedBairro by mutableStateOf<BairroInfo?>(null)
         private set
 
     var secondsRemaining by mutableLongStateOf(0L)
@@ -31,7 +39,23 @@ class UserHomeViewModel : ViewModel() {
     var expanded by mutableStateOf(false)
 
     init {
-        updateBairro(selectedBairro)
+        loadBairros()
+    }
+
+    private fun loadBairros() {
+        viewModelScope.launch {
+            try {
+                val list = withContext(Dispatchers.IO) {
+                    repository.getBairros()
+                }
+                bairros = list
+                if (list.isNotEmpty()) {
+                    updateBairro(list[0])
+                }
+            } catch (e: Exception) {
+                // Handle error
+            }
+        }
     }
 
     fun updateBairro(bairro: BairroInfo) {
@@ -44,7 +68,8 @@ class UserHomeViewModel : ViewModel() {
     }
 
     private fun startCountdown() {
-        viewModelScope.launch {
+        countdownJob?.cancel()
+        countdownJob = viewModelScope.launch {
             while (secondsRemaining > 0) {
                 delay(1000)
                 secondsRemaining--
@@ -53,6 +78,9 @@ class UserHomeViewModel : ViewModel() {
     }
 
     private fun calcularProximaColeta(bairro: BairroInfo): Pair<Long, String> {
+        val diasSemanaBairro = bairro.diasSemana.filter { it in 1..7 }
+        if (diasSemanaBairro.isEmpty()) return Pair(0L, "Não agendada")
+
         val agora = Calendar.getInstance()
         val proxima = Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, bairro.horaInicio)
@@ -65,8 +93,10 @@ class UserHomeViewModel : ViewModel() {
             proxima.add(Calendar.DAY_OF_YEAR, 1)
         }
 
-        while (!bairro.diasSemana.contains(proxima.get(Calendar.DAY_OF_WEEK))) {
+        var tentativas = 0
+        while (!diasSemanaBairro.contains(proxima.get(Calendar.DAY_OF_WEEK)) && tentativas < 8) {
             proxima.add(Calendar.DAY_OF_YEAR, 1)
+            tentativas++
         }
 
         val segundos = (proxima.timeInMillis - agora.timeInMillis) / 1000
@@ -75,14 +105,19 @@ class UserHomeViewModel : ViewModel() {
     }
 
     private fun gerarUltimasColetas(bairro: BairroInfo, quantidade: Int = 4): List<UltimaColeta> {
+        val diasSemanaBairro = bairro.diasSemana.filter { it in 1..7 }
+        if (diasSemanaBairro.isEmpty()) return emptyList()
+
         val ultimas = mutableListOf<UltimaColeta>()
         val cal = Calendar.getInstance()
         val sdf = SimpleDateFormat("dd/MM/yyyy", Locale("pt", "BR"))
 
         var count = 0
-        while (count < quantidade) {
+        var diasBusca = 0
+        while (count < quantidade && diasBusca < 30) { // Limite de 30 dias para evitar loop
             cal.add(Calendar.DAY_OF_YEAR, -1)
-            if (bairro.diasSemana.contains(cal.get(Calendar.DAY_OF_WEEK))) {
+            diasBusca++
+            if (diasSemanaBairro.contains(cal.get(Calendar.DAY_OF_WEEK))) {
                 ultimas.add(UltimaColeta(sdf.format(cal.time)))
                 count++
             }

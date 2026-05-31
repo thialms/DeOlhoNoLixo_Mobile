@@ -22,7 +22,6 @@ import com.example.deolhonolixo.ui.components.CustomTextField
 import com.example.deolhonolixo.ui.components.PrimaryButton
 import com.example.deolhonolixo.ui.screens.login.LoginViewModel
 import com.example.deolhonolixo.ui.screens.login.LoginViewModelFactory
-import com.example.deolhonolixo.ui.theme.Primary
 import com.example.deolhonolixo.ui.theme.TextSecondary
 
 @Composable

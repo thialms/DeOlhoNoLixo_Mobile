@@ -14,10 +14,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.deolhonolixo.data.model.BairroInfo
 import com.example.deolhonolixo.data.model.RouteResponse
 import com.example.deolhonolixo.data.model.Truck
 import com.example.deolhonolixo.data.model.UrbanGeometryResponse
-import com.example.deolhonolixo.data.model.listaBairrosGeo
 import com.example.deolhonolixo.ui.components.BairroDropdown
 import com.example.deolhonolixo.ui.components.WasteMapView
 
@@ -27,19 +27,30 @@ fun MonitoramentoTab(
     urbanGeometry: List<UrbanGeometryResponse>,
     routes: List<RouteResponse>
 ) {
-    // Reutilizando a lógica de estado do usuário para o mapa
-    var selectedBairro by remember { mutableStateOf(listaBairrosGeo[0]) }
+    val bairros = remember(urbanGeometry) { urbanGeometry.map { it.toBairroInfo() } }
+    var selectedBairro by remember { mutableStateOf(bairros.getOrNull(0) ?: BairroInfo()) }
+
+    // Atualiza o bairro selecionado se a lista carregar depois e o atual estiver vazio
+    LaunchedEffect(bairros) {
+        if (selectedBairro.id.isEmpty() && bairros.isNotEmpty()) {
+            selectedBairro = bairros[0]
+        }
+    }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        // Reutilizando exatamente o mesmo mapa
+        // ...
         WasteMapView(
             bairroId = selectedBairro.id,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.60f)
+                .align(Alignment.TopCenter)
         )
 
         // Reutilizando exatamente o mesmo dropdown
         BairroDropdown(
             selectedBairro = selectedBairro,
+            bairros = bairros,
             onBairroSelected = { selectedBairro = it },
             modifier = Modifier
                 .padding(16.dp)
@@ -52,7 +63,7 @@ fun MonitoramentoTab(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .fillMaxHeight(0.4f),
+                .fillMaxHeight(0.45f),
             color = Color.White,
             shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp),
             shadowElevation = 16.dp

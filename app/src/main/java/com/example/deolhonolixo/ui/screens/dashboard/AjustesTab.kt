@@ -7,8 +7,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CloudSync
-import androidx.compose.material.icons.filled.Dns
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.PersonAdd
 import androidx.compose.material3.*
@@ -20,7 +18,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.deolhonolixo.BuildConfig
 import com.example.deolhonolixo.data.model.RegisterRequest
 import com.example.deolhonolixo.ui.components.CustomTextField
 import com.example.deolhonolixo.ui.screens.DashboardViewModel
@@ -155,18 +152,18 @@ fun AjustesTab(viewModel: DashboardViewModel, onLogout: () -> Unit) {
 
         Spacer(modifier = Modifier.height(24.dp))
         
-        SettingSection(title = "Configurações de Rede") {
-            SettingItem(
-                icon = Icons.Default.Dns,
-                title = "Endpoint API",
-                value = BuildConfig.API_URL
-            )
-            SettingItem(
-                icon = Icons.Default.CloudSync,
-                title = "Sync automático",
-                value = "Ativado"
-            )
-        }
+//        SettingSection(title = "Configurações de Rede") {
+//            SettingItem(
+//                icon = Icons.Default.Dns,
+//                title = "Endpoint API",
+//                value = Constants.BASE_URL
+//            )
+//            SettingItem(
+//                icon = Icons.Default.CloudSync,
+//                title = "Sync automático",
+//                value = "Ativado"
+//            )
+//        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
